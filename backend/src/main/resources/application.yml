@@ -1,0 +1,44 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  config:
+    import:
+      - optional:file:./.env[.properties]
+      - optional:file:./.env.${SPRING_PROFILES_ACTIVE:development}[.properties]
+  application:
+    name: academy-kh-backend
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:academy_kh}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    default-property-inclusion: non_null
+
+app:
+  database-migrator:
+    enabled: ${DATABASE_MIGRATOR_ENABLED:false}
+  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:3000}
+  frontend-url: ${PUBLIC_FRONTEND_URL:https://academykh.jaekjay.com}
+  cookie-name: ${AUTH_COOKIE_NAME:academy_session}
+  cookie-secret: ${AUTH_COOKIE_SECRET:change-this-local-dev-secret}
+  cookie-secure: ${AUTH_COOKIE_SECURE:false}
+  cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+  turnstile-secret-key: ${TURNSTILE_SECRET_KEY:}
+  turnstile-verify-enabled: ${TURNSTILE_VERIFY_ENABLED:false}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,49 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: academy-kh-mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-academy_kh}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-academy_root}
+      MYSQL_USER: ${MYSQL_USER:-academy_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-academy_pass}
+    ports:
+      - "3308:3306"
+    volumes:
+      - academy_kh_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: academy-kh-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env.${APP_ENV:-development}
+    ports:
+      - "${BACKEND_HOST_PORT:-8081}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:${BACKEND_HOST_PORT:-8081}}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+    container_name: academy-kh-frontend
+    depends_on:
+      - backend
+    environment:
+      API_INTERNAL_URL: ${API_INTERNAL_URL:-http://backend:8080}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:${BACKEND_HOST_PORT:-8081}}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+    ports:
+      - "3000:3000"
+
+volumes:
+  academy_kh_mysql:
